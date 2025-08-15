@@ -48,6 +48,36 @@ class GoogleDocsService {
   }
 
   /**
+   * Refresh access token if needed
+   */
+  async refreshTokenIfNeeded(tokens: GoogleDocsTokens): Promise<GoogleDocsTokens> {
+    try {
+      this.oauth2Client.setCredentials(tokens);
+      
+      // Check if token is expired or will expire soon (within 5 minutes)
+      const now = Date.now();
+      const expiryTime = tokens.expiry_date || 0;
+      const fiveMinutes = 5 * 60 * 1000;
+
+      if (expiryTime - now < fiveMinutes) {
+        console.log('🔄 Refreshing Google Docs token...');
+        const { credentials } = await this.oauth2Client.refreshAccessToken();
+        
+        // Update the stored tokens
+        const refreshedTokens = credentials as GoogleDocsTokens;
+        this.oauth2Client.setCredentials(refreshedTokens);
+        
+        return refreshedTokens;
+      }
+
+      return tokens;
+    } catch (error) {
+      console.error('❌ Error refreshing Google Docs token:', error);
+      throw new Error('Failed to refresh Google Docs token');
+    }
+  }
+
+  /**
    * Create a new Google Doc for an appointment
    */
   async createAppointmentDocument(appointment: Appointment, client: Client | null): Promise<AppointmentDocument> {
@@ -336,6 +366,15 @@ class GoogleDocsService {
    */
   async appendToDocument(documentId: string, title: string, content: string): Promise<void> {
     try {
+      // Refresh tokens if needed before making API calls
+      const currentCredentials = this.oauth2Client.credentials;
+      if (currentCredentials) {
+        const refreshedTokens = await this.refreshTokenIfNeeded(currentCredentials as GoogleDocsTokens);
+        if (refreshedTokens !== currentCredentials) {
+          console.log('✅ Tokens refreshed successfully for Google Docs API');
+        }
+      }
+
       // Get the current document to find the end
       const doc = await this.docs.documents.get({ documentId });
       const body = doc.data.body;

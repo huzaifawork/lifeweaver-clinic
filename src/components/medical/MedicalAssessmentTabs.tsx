@@ -136,17 +136,52 @@ export default function MedicalAssessmentTabs({
     }
   };
 
+  // Helper function to remove undefined values from an object
+  const removeUndefinedValues = (obj: any): any => {
+    if (obj === null || obj === undefined) return undefined;
+    if (typeof obj !== 'object') return obj;
+    
+    const cleaned: any = {};
+    let hasValidData = false;
+    
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined && value !== null && value !== '') {
+        cleaned[key] = value;
+        hasValidData = true;
+      }
+    }
+    
+    return hasValidData ? cleaned : undefined;
+  };
+
   const handleSaveROM = async (assessment: Omit<RangeOfMotionAssessment, 'id'>) => {
     try {
+      // Clean up the assessment data - remove undefined values and empty body parts
+      const cleanedAssessment: any = {
+        assessmentDate: assessment.assessmentDate,
+        assessorName: assessment.assessorName
+      };
+      
+      // Only include notes if it has a value
+      if (assessment.notes && assessment.notes.trim() !== '') {
+        cleanedAssessment.notes = assessment.notes;
+      }
+
+      // Process each body part and only include if it has valid data
+      const bodyParts = ['shoulder', 'elbow', 'wrist', 'digits', 'thumb'];
+      bodyParts.forEach(part => {
+        const bodyPartData = removeUndefinedValues(assessment[part as keyof typeof assessment]);
+        if (bodyPartData) {
+          cleanedAssessment[part] = bodyPartData;
+        }
+      });
+
       const medicalAssessment: Omit<MedicalAssessment, 'id'> = {
         clientId: client.id,
         assessmentDate: assessment.assessmentDate,
         assessorId: currentUser.id,
         assessorName: currentUser.name,
-        rangeOfMotion: {
-          ...assessment,
-          id: `temp-${Date.now()}` // Temporary ID for the assessment
-        }
+        rangeOfMotion: cleanedAssessment // Firebase will generate the ID automatically
       };
       await onSaveAssessment(medicalAssessment);
 

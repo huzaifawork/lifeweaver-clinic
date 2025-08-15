@@ -177,13 +177,24 @@ export async function POST(request: NextRequest) {
             // Fallback to simple document creation
             const GoogleDocsServiceClass = (await import('@/lib/google-docs-service')).default;
             const docsService = new GoogleDocsServiceClass();
-            docsService.initializeWithTokens({
+            
+            const fallbackTokens = {
               access_token: connection.tokens.access_token,
               refresh_token: connection.tokens.refresh_token,
               scope: connection.tokens.scope,
               token_type: connection.tokens.token_type || 'Bearer',
               expiry_date: connection.tokens.expiry_date
-            });
+            };
+            
+            docsService.initializeWithTokens(fallbackTokens);
+
+            // Refresh tokens if needed
+            const refreshedFallbackTokens = await docsService.refreshTokenIfNeeded(fallbackTokens);
+            if (refreshedFallbackTokens !== fallbackTokens) {
+              const { updateUserCalendarTokens } = await import('@/lib/firebase/userCalendarConnections');
+              await updateUserCalendarTokens(userId, refreshedFallbackTokens);
+              console.log('✅ Updated stored tokens after refresh for fallback document');
+            }
 
             // Get client data for dynamic values
             const { getClient } = await import('@/lib/firebase/clients');
@@ -341,13 +352,24 @@ export async function POST(request: NextRequest) {
             // Fallback to simple document creation
             const GoogleDocsServiceClass = (await import('@/lib/google-docs-service')).default;
             const docsService = new GoogleDocsServiceClass();
-            docsService.initializeWithTokens({
+            
+            const assessmentFallbackTokens = {
               access_token: connection.tokens.access_token,
               refresh_token: connection.tokens.refresh_token,
               scope: connection.tokens.scope,
               token_type: connection.tokens.token_type || 'Bearer',
               expiry_date: connection.tokens.expiry_date
-            });
+            };
+            
+            docsService.initializeWithTokens(assessmentFallbackTokens);
+
+            // Refresh tokens if needed
+            const refreshedAssessmentTokens = await docsService.refreshTokenIfNeeded(assessmentFallbackTokens);
+            if (refreshedAssessmentTokens !== assessmentFallbackTokens) {
+              const { updateUserCalendarTokens } = await import('@/lib/firebase/userCalendarConnections');
+              await updateUserCalendarTokens(userId, refreshedAssessmentTokens);
+              console.log('✅ Updated stored tokens after refresh for assessment fallback');
+            }
 
             // Get client data first
             const { getClient } = await import('@/lib/firebase/clients');
@@ -400,13 +422,25 @@ export async function POST(request: NextRequest) {
         // Use the working GoogleDocsService with user tokens
         const GoogleDocsServiceClass = (await import('@/lib/google-docs-service')).default;
         const assessmentDocsService = new GoogleDocsServiceClass();
-        assessmentDocsService.initializeWithTokens({
+        
+        const initialTokens = {
           access_token: tokens.access_token,
           refresh_token: tokens.refresh_token,
           scope: tokens.scope,
           token_type: tokens.token_type || 'Bearer',
           expiry_date: tokens.expiry_date
-        });
+        };
+        
+        assessmentDocsService.initializeWithTokens(initialTokens);
+
+        // Refresh tokens if needed and update stored tokens
+        const refreshedTokens = await assessmentDocsService.refreshTokenIfNeeded(initialTokens);
+        if (refreshedTokens !== initialTokens) {
+          // Update stored tokens in Firebase
+          const { updateUserCalendarTokens } = await import('@/lib/firebase/userCalendarConnections');
+          await updateUserCalendarTokens(userId, refreshedTokens);
+          console.log('✅ Updated stored tokens after refresh');
+        }
 
         // Append medical assessment to the existing document
         await assessmentDocsService.appendToDocument(
@@ -497,13 +531,25 @@ export async function POST(request: NextRequest) {
         // Use the working GoogleDocsService with user tokens
         const GoogleDocsServiceClass2 = (await import('@/lib/google-docs-service')).default;
         const docsService = new GoogleDocsServiceClass2();
-        docsService.initializeWithTokens({
+        
+        const demographicsTokens = {
           access_token: tokens.access_token,
           refresh_token: tokens.refresh_token,
           scope: tokens.scope,
           token_type: tokens.token_type || 'Bearer',
           expiry_date: tokens.expiry_date
-        });
+        };
+        
+        docsService.initializeWithTokens(demographicsTokens);
+
+        // Refresh tokens if needed and update stored tokens
+        const refreshedDemographicsTokens = await docsService.refreshTokenIfNeeded(demographicsTokens);
+        if (refreshedDemographicsTokens !== demographicsTokens) {
+          // Update stored tokens in Firebase
+          const { updateUserCalendarTokens } = await import('@/lib/firebase/userCalendarConnections');
+          await updateUserCalendarTokens(userId, refreshedDemographicsTokens);
+          console.log('✅ Updated stored tokens after refresh for demographics');
+        }
 
         // Append demographics to the existing document
         await docsService.appendToDocument(
