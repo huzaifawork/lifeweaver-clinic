@@ -13,9 +13,14 @@ export function getApiBaseUrl(): string {
       return process.env.NEXTAUTH_URL;
     }
     
-    // Fallback for server-side when NEXTAUTH_URL is not set
+    // Production URL for Lifeweaver Clinic
     if (process.env.VERCEL_URL) {
       return `https://${process.env.VERCEL_URL}`;
+    }
+    
+    // Hardcoded production URL as fallback
+    if (process.env.NODE_ENV === 'production') {
+      return 'https://lifeweaver-clinic.vercel.app';
     }
     
     // Development fallback
