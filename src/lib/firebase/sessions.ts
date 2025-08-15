@@ -14,6 +14,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import type { SessionNote } from '@/lib/types';
+import { getApiUrl } from '@/lib/utils/api-url';
 
 const COLLECTION_NAME = 'sessions';
 
@@ -97,7 +98,7 @@ export const createSession = async (sessionData: Omit<SessionNote, 'id' | 'creat
       };
 
       // Try to sync via API call (works both client and server side)
-      const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:9002'}/api/calendar/sync-appointment`, {
+      const response = await fetch(getApiUrl('/api/calendar/sync-appointment'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,7 +145,7 @@ export const createSession = async (sessionData: Omit<SessionNote, 'id' | 'creat
     // 🆕 AUTO-APPEND SESSION TO CLIENT'S GOOGLE DOC (via API route)
     console.log('📄 STARTING Google Docs append for session...');
     try {
-      const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:9002'}/api/documents/append`, {
+      const response = await fetch(getApiUrl('/api/documents/append'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -23,6 +23,7 @@ import type {
   DocumentGenerationRequest,
   ClientDemographics
 } from '@/lib/types';
+import { getApiUrl } from '@/lib/utils/api-url';
 
 /**
  * Generate or update a client's medical assessment document using professional template
@@ -222,7 +223,7 @@ export const addSessionToClientDocument = async (
       // We'll use the original API route approach that was working
       console.log('Creating new document via original API route...');
 
-      const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:9002'}/api/docs/create-appointment-doc`, {
+      const response = await fetch(getApiUrl('/api/docs/create-appointment-doc'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

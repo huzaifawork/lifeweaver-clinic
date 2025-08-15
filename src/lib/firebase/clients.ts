@@ -16,6 +16,7 @@ import {
   arrayRemove,
 } from 'firebase/firestore';
 import type { Client } from '@/lib/types';
+import { getApiUrl } from '@/lib/utils/api-url';
 
 const COLLECTION_NAME = 'clients';
 
@@ -66,7 +67,7 @@ export const updateClient = async (clientId: string, updates: Partial<Client>): 
         const userId = updates.addedByUserId || 'system';
         const userName = updates.addedByUserName || 'System';
 
-        const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:9002'}/api/documents/append`, {
+        const response = await fetch(getApiUrl('/api/documents/append'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

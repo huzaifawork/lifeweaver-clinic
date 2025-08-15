@@ -14,6 +14,7 @@ import {
   Timestamp 
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { getApiUrl } from '@/lib/utils/api-url';
 import type { 
   MedicalAssessment, 
   FuglMeyerAssessment, 
@@ -66,7 +67,7 @@ export const createMedicalAssessment = async (
     // 🆕 AUTO-APPEND TO GOOGLE DOC (Same as demographics)
     console.log('📄 STARTING Google Docs append for medical assessment...');
     try {
-      const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:9002'}/api/documents/append`, {
+      const response = await fetch(getApiUrl('/api/documents/append'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

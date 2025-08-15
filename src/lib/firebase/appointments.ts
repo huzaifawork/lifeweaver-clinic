@@ -15,6 +15,7 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import type { Appointment } from '@/lib/types';
+import { getApiUrl } from '@/lib/utils/api-url';
 import { appointmentToCalendarEvent, extractAppointmentIdFromEvent, isLWVClinicEvent, syncAppointmentWithCalendarEvent } from '@/lib/utils/appointmentCalendarSync';
 
 const COLLECTION_NAME = 'appointments';
@@ -49,7 +50,7 @@ export const createAppointment = async (appointmentData: Omit<Appointment, 'id' 
       console.log('📡 Making API call to sync-appointment endpoint...');
 
       // Try to sync via API call (works both client and server side)
-      const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:9002'}/api/calendar/sync-appointment`, {
+      const response = await fetch(getApiUrl('/api/calendar/sync-appointment'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -86,7 +87,7 @@ export const createAppointment = async (appointmentData: Omit<Appointment, 'id' 
       // 🆕 AUTO-CREATE GOOGLE DOC FOR APPOINTMENT
       console.log('📄 STARTING Google Docs creation...');
       try {
-        const docsResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:9002'}/api/docs/create-appointment-doc`, {
+        const docsResponse = await fetch(getApiUrl('/api/docs/create-appointment-doc'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -166,7 +167,7 @@ export const updateAppointment = async (id: string, updates: Partial<Omit<Appoin
       try {
         const updatedAppointment = { ...currentAppointment, ...updates };
 
-        const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:9002'}/api/calendar/sync-appointment`, {
+        const response = await fetch(getApiUrl('/api/calendar/sync-appointment'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -208,7 +209,7 @@ export const deleteAppointment = async (id: string): Promise<void> => {
     // Delete from Google Calendar first if event exists - Multi-user sync
     if (appointment.googleCalendarEventId) {
       try {
-        const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:9002'}/api/calendar/sync-appointment`, {
+        const response = await fetch(getApiUrl('/api/calendar/sync-appointment'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -369,7 +370,7 @@ export const syncWithGoogleCalendar = async (): Promise<{
 
   try {
     // Fetch events from Google Calendar via API (server-side only)
-    const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:9002'}/api/calendar/events`);
+    const response = await fetch(getApiUrl('/api/calendar/events'));
     if (!response.ok) {
       throw new Error('Failed to fetch Google Calendar events');
     }

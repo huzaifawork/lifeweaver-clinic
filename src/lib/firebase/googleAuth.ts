@@ -11,6 +11,7 @@ import {
 import { getUserByEmail, addUser } from './users';
 import type { User } from '@/lib/types';
 import { saveUserCalendarConnection } from './userCalendarConnections';
+import { getApiUrl } from '@/lib/utils/api-url';
 
 // Initialize Google Auth Provider
 const googleProvider = new GoogleAuthProvider();
@@ -180,7 +181,7 @@ const saveGoogleCalendarTokens = async (
     // Sync all existing appointments to this newly connected user
     console.log('🔄 Starting sync of existing appointments for new user...');
     try {
-      const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:9002'}/api/calendar/sync-existing`, {
+      const response = await fetch(getApiUrl('/api/calendar/sync-existing'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
